@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargador de Documentos para Aivo Studio</title>
+    <style>
+        /* Estilos básicos CSS */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        .drop-area:hover {
+            border-color: #007bff;
+        }
+        .drop-area.highlight {
+            border-color: #007bff;
+            background-color: #e9f5ff;
+        }
+        input[type="file"] {
+            display: none; /* Ocultar el input de archivo por defecto */
+        }
+        #fileList {
+            text-align: left;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        #fileList div {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-file {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0 5px;
+        }
+        .upload-button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+        .upload-button:hover {
+            background-color: #218838;
+        }
+        .upload-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-message {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #555;
+        }
+        .status-message.success {
+            color: #28a745;
+        }
+        .status-message.error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cargador de Documentos</h1>
+
+        <div class="drop-area" id="dropArea">
+            <p>Arrastra y suelta archivos aquí, o haz clic para seleccionar</p>
+            <input type="file" id="fileInput" multiple accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        </div>
+
+        <div id="fileList">
+            </div>
+
+        <button class="upload-button" id="uploadButton" disabled>Cargar a Aivo Studio</button>
+        <p class="status-message" id="statusMessage"></p>
+    </div>
+
+    <script>
+        // JavaScript para la lógica de la mini-web
+
+        // ¡IMPORTANTE! Reemplaza esto con la URL REAL de tu endpoint HTTP IN en Aivo Studio
+        // Ejemplo: https://tudominio.aivo.co/api/tu-ruta/uploadDocuments
+        const AIVO_STUDIO_ENDPOINT_URL = 'https://studio.aivo.co/api/consulting-macarena/recepcion'; 
+        
+        // No se requiere AIVO_AUTH_TOKEN ni Authorization header según tu indicación.
+
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileListContainer = document.getElementById('fileList');
+        const uploadButton = document.getElementById('uploadButton');
+        const statusMessage = document.getElementById('statusMessage');
+
+        let selectedFiles = []; // Almacena los File objects seleccionados
+
+        // -- Funciones de Drag and Drop --
+        dropArea.addEventListener('click', () => fileInput.click());
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('highlight');
+        });
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('highlight');
+        });
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('highlight');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // -- Manejo de la selección de archivos --
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                // Evitar duplicados (opcional, por nombre y tamaño)
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            }
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileListContainer.innerHTML = ''; // Limpiar la lista actual
+            if (selectedFiles.length === 0) {
+                fileListContainer.innerHTML = '<p>No hay archivos seleccionados.</p>';
+                uploadButton.disabled = true;
+                return;
+            }
+
+            selectedFiles.forEach((file, index) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.innerHTML = `
+                    <span>${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+                    <button class="remove-file" data-index="${index}">&times;</button>
+                `;
+                fileListContainer.appendChild(fileDiv);
+            });
+
+            uploadButton.disabled = false; // Habilitar el botón de carga
+            addRemoveListeners(); // Añadir listeners a los botones de eliminar
+        }
+
+        function addRemoveListeners() {
+            document.querySelectorAll('.remove-file').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const indexToRemove = parseInt(e.target.dataset.index);
+                    selectedFiles.splice(indexToRemove, 1); // Eliminar el archivo del array
+                    updateFileList(); // Actualizar la lista
+                });
+            });
+        }
+
+        // -- Conversión a Base64 y Envío Directo a Aivo Studio --
+        uploadButton.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                alert('Por favor, selecciona al menos un archivo.');
+                return;
+            }
+
+            // Validar que la URL del endpoint no sea la predeterminada
+            if (AIVO_STUDIO_ENDPOINT_URL === 'TU_URL_DEL_ENDPOINT_HTTP_IN_DE_AIVO_STUDIO_AQUI') {
+                statusMessage.textContent = 'ERROR: Por favor, configura la URL de Aivo Studio en el código JavaScript.';
+                statusMessage.className = 'status-message error';
+                return;
+            }
+
+            uploadButton.disabled = true;
+            statusMessage.textContent = 'Convirtiendo y enviando archivos a Aivo Studio...';
+            statusMessage.className = 'status-message'; // Reset class
+
+            const filesPayload = [];
+
+            for (const file of selectedFiles) {
+                try {
+                    const base64Data = await readFileAsBase64(file);
+                    const cleanBase64Data = base64Data.split(',')[1] || base64Data; 
+
+                    filesPayload.push({
+                        base64_data: cleanBase64Data, // o base64Data si Aivo espera el prefijo
+                        name_original_del_archivo: file.name,
+                        tipo_MIME: file.type || 'application/octet-stream', // Fallback MIME type
+                        timestamp: new Date().toISOString()
+                    });
+                } catch (error) {
+                    console.error('Error al leer el archivo:', file.name, error);
+                    statusMessage.textContent = `Error al procesar ${file.name}. Consulta la consola.`;
+                    statusMessage.className = 'status-message error';
+                    uploadButton.disabled = false;
+                    return; // Detener si hay un error con un archivo
+                }
+            }
+
+            // Headers para la solicitud (solo Content-Type, ya que no hay token de Auth)
+            const requestHeaders = {
+                'Content-Type': 'application/json'
+            };
+
+            // Enviar directamente a Aivo Studio
+            try {
+                const response = await fetch(AIVO_STUDIO_ENDPOINT_URL, {
+                    method: 'POST',
+                    headers: requestHeaders,
+                    body: JSON.stringify({ files: filesPayload }) // Asegúrate de que este sea el formato que espera tu http in en Aivo
+                });
+
+                if (response.ok) {
+                    // Intenta parsear la respuesta como JSON, pero sé flexible
+                    let result;
+                    try {
+                        result = await response.json(); 
+                    } catch (e) {
+                        result = await response.text(); // Si no es JSON, toma el texto
+                        console.warn("La respuesta de Aivo Studio no es JSON. Contenido:", result);
+                    }
+                    
+                    statusMessage.textContent = '¡Archivos enviados con éxito a Aivo Studio!';
+                    statusMessage.className = 'status-message success';
+                    console.log('Respuesta de Aivo Studio:', result);
+                    selectedFiles = []; // Limpiar archivos seleccionados después de éxito
+                    updateFileList(); // Actualizar la UI
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`Error ${response.status}: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error al enviar a Aivo Studio:', error);
+                statusMessage.textContent = `Error al conectar con Aivo Studio: ${error.message}`;
+                statusMessage.className = 'status-message error';
+            } finally {
+                uploadButton.disabled = false; // Re-habilitar el botón
+            }
+        });
+
+        // Función para leer un archivo como Base64
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file); // Esto lee el archivo como Data URL (Base64 con prefijo)
+            });
+        }
+
+        // Inicializar la lista al cargar la página
+        updateFileList();
+
+    </script>
+</body>
+</html>
