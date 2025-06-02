@@ -3,45 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargador de Documentos para Aivo Studio</title>
+    <title>Carga de Documentos - Macarena.ai</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos básicos CSS */
+        /* Variables de colores basadas en Macarena.ai (aproximadas) */
+        :root {
+            --macarena-blue: #00AEEF;
+            --macarena-green: #00C9B1;
+            --macarena-text-dark: #333333;
+            --macarena-text-light: #555555;
+            --macarena-bg-light: #f8f8f8;
+            --macarena-border-light: #e0e0e0;
+        }
+
+        /* Estilos generales */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Montserrat', 'Roboto', sans-serif; /* Usar las fuentes importadas, con fallback */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f4f4f4;
+            background-color: var(--macarena-bg-light); /* Fondo más claro */
             margin: 0;
+            padding: 20px; /* Añadir padding al body para que el container no toque los bordes */
+            box-sizing: border-box; /* Asegurar que padding no agrande el body */
         }
         .container {
             background-color: #ffffff;
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px; /* Más redondeado, estilo pop-up */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada para efecto pop-up */
             text-align: center;
             width: 90%;
-            max-width: 500px;
+            max-width: 550px; /* Un poco más ancho */
+            border: 1px solid var(--macarena-border-light); /* Borde sutil */
+        }
+        .logo {
+            max-width: 150px; /* Ajusta según el tamaño de tu logo */
+            margin-bottom: 25px;
+            display: block; /* Para centrarlo con margin auto */
+            margin-left: auto;
+            margin-right: auto;
         }
         h1 {
-            color: #333;
+            color: var(--macarena-text-dark);
             margin-bottom: 25px;
+            font-size: 1.8em; /* Título un poco más grande */
+            font-weight: 600; /* Peso de fuente para el título */
         }
         .drop-area {
-            border: 2px dashed #ccc;
+            border: 2px dashed var(--macarena-border-light); /* Borde con color de Macarena.ai */
             border-radius: 8px;
             padding: 40px 20px;
             margin-bottom: 20px;
             cursor: pointer;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease; /* Transición más suave */
+            color: var(--macarena-text-light); /* Color de texto más suave */
+            font-size: 1.1em;
         }
         .drop-area:hover {
-            border-color: #007bff;
+            border-color: var(--macarena-blue); /* Color de hover azul de Macarena.ai */
+            background-color: rgba(0, 174, 239, 0.05); /* Fondo suave en hover */
         }
         .drop-area.highlight {
-            border-color: #007bff;
-            background-color: #e9f5ff;
+            border-color: var(--macarena-blue);
+            background-color: rgba(0, 174, 239, 0.1); /* Fondo más fuerte en highlight */
         }
         input[type="file"] {
             display: none; /* Ocultar el input de archivo por defecto */
@@ -49,72 +75,100 @@
         #fileList {
             text-align: left;
             margin-top: 15px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--macarena-border-light); /* Borde superior con color de Macarena.ai */
             padding-top: 15px;
         }
         #fileList div {
-            background-color: #e9ecef;
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 8px;
+            background-color: #f0f0f0; /* Fondo más claro para elementos de la lista */
+            padding: 10px 15px;
+            border-radius: 6px; /* Más redondeado */
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.95em;
+            color: var(--macarena-text-dark);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra suave */
         }
         .remove-file {
             background: none;
             border: none;
-            color: #dc3545;
+            color: #dc3545; /* Rojo para eliminar, universalmente reconocible */
             font-weight: bold;
             cursor: pointer;
-            font-size: 1.2em;
-            padding: 0 5px;
+            font-size: 1.3em;
+            padding: 0 8px;
+            transition: color 0.2s ease;
+        }
+        .remove-file:hover {
+            color: #c82333;
         }
         .upload-button {
-            background-color: #28a745;
+            background-color: var(--macarena-green); /* Botón con color de Macarena.ai */
             color: white;
-            padding: 12px 25px;
+            padding: 14px 30px; /* Más padding para que sea más prominente */
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1.1em;
-            transition: background-color 0.3s ease;
-            margin-top: 20px;
+            font-size: 1.2em; /* Texto del botón más grande */
+            font-weight: 700; /* Peso de fuente más fuerte */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 25px;
+            box-shadow: 0 4px 10px rgba(0, 201, 177, 0.3); /* Sombra para el botón */
         }
         .upload-button:hover {
-            background-color: #218838;
+            background-color: #00b099; /* Tono más oscuro en hover */
+            transform: translateY(-2px); /* Pequeño efecto de elevación */
         }
         .upload-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
         .status-message {
             margin-top: 20px;
-            font-weight: bold;
-            color: #555;
+            font-weight: 600;
+            font-size: 1em;
+            color: var(--macarena-text-light);
         }
         .status-message.success {
-            color: #28a745;
+            color: var(--macarena-green); /* Mensaje de éxito con color de Macarena.ai */
         }
         .status-message.error {
-            color: #dc3545;
+            color: #dc3545; /* Error en rojo */
+        }
+        /* Nuevo estilo para el mensaje de cierre manual */
+        .close-message {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: var(--macarena-text-dark);
+            font-weight: 700;
+            animation: fadein 1s; /* Animación para que aparezca suavemente */
+        }
+        @keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Cargador de Documentos</h1>
+        <img src="https://www.macarena.ai/wp-content/uploads/2023/11/logo_macarena.svg" alt="Macarena.ai Logo" class="logo">
+        
+        <h1>¿Desea cargar documentos?</h1>
 
         <div class="drop-area" id="dropArea">
             <p>Arrastra y suelta archivos aquí, o haz clic para seleccionar</p>
-            <input type="file" id="fileInput" multiple accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <input type="file" id="fileInput" multiple accept="*">
         </div>
 
         <div id="fileList">
             </div>
 
-        <button class="upload-button" id="uploadButton" disabled>Cargar a Aivo Studio</button>
+        <button class="upload-button" id="uploadButton" disabled>Enviar</button>
         <p class="status-message" id="statusMessage"></p>
+        <p class="close-message" id="closeWindowMessage" style="display: none;">Por favor, cierra esta ventana.</p>
     </div>
 
     <script>
@@ -122,7 +176,7 @@
 
         // ¡IMPORTANTE! Reemplaza esto con la URL REAL de tu endpoint HTTP IN en Aivo Studio
         // Ejemplo: https://tudominio.aivo.co/api/tu-ruta/uploadDocuments
-        const AIVO_STUDIO_ENDPOINT_URL = 'https://studio.aivo.co/api/consulting-macarena/recepcion';
+        const AIVO_STUDIO_ENDPOINT_URL = 'https://studio.aivo.co/api/consulting-macarena/recepcion'; 
         
         // No se requiere AIVO_AUTH_TOKEN ni Authorization header según tu indicación.
 
@@ -131,6 +185,7 @@
         const fileListContainer = document.getElementById('fileList');
         const uploadButton = document.getElementById('uploadButton');
         const statusMessage = document.getElementById('statusMessage');
+        const closeWindowMessage = document.getElementById('closeWindowMessage'); // Nuevo elemento
 
         let selectedFiles = []; // Almacena los File objects seleccionados
 
@@ -155,6 +210,9 @@
         });
 
         function handleFiles(files) {
+            // Ocultar el mensaje de cierre si se vuelven a seleccionar archivos
+            closeWindowMessage.style.display = 'none';
+
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 // Evitar duplicados (opcional, por nombre y tamaño)
@@ -211,14 +269,17 @@
             }
 
             uploadButton.disabled = true;
-            statusMessage.textContent = 'Convirtiendo y enviando archivos a Aivo Studio...';
+            statusMessage.textContent = 'Cargando archivos...'; // Mensaje de carga más simple
             statusMessage.className = 'status-message'; // Reset class
+            closeWindowMessage.style.display = 'none'; // Asegurarse de que el mensaje de cierre esté oculto al iniciar la carga
 
             const filesPayload = [];
 
             for (const file of selectedFiles) {
                 try {
                     const base64Data = await readFileAsBase64(file);
+                    // Eliminar el prefijo "data:image/png;base64," si Aivo Studio solo espera la cadena Base64 pura
+                    // Si Aivo necesita el prefijo, mantén 'base64Data' tal cual.
                     const cleanBase64Data = base64Data.split(',')[1] || base64Data; 
 
                     filesPayload.push({
@@ -259,18 +320,30 @@
                         console.warn("La respuesta de Aivo Studio no es JSON. Contenido:", result);
                     }
                     
-                    statusMessage.textContent = '¡Archivos enviados con éxito a Aivo Studio!';
+                    statusMessage.textContent = '¡Archivos enviados con éxito!'; // Mensaje de éxito más simple
                     statusMessage.className = 'status-message success';
                     console.log('Respuesta de Aivo Studio:', result);
                     selectedFiles = []; // Limpiar archivos seleccionados después de éxito
                     updateFileList(); // Actualizar la UI
+
+                    // *** LÓGICA PARA CERRAR LA VENTANA O MOSTRAR MENSAJE ***
+                    setTimeout(() => {
+                        if (window.opener && !window.opener.closed) { 
+                            window.close(); // Intenta cerrar la ventana
+                        } else {
+                            // Si no se puede cerrar automáticamente, muestra el mensaje
+                            closeWindowMessage.style.display = 'block'; 
+                            statusMessage.textContent = '¡Archivos enviados con éxito!'; // Mantener el mensaje de éxito
+                        }
+                    }, 1500); // Dar 1.5 segundos para que el usuario vea el mensaje de éxito
+
                 } else {
                     const errorText = await response.text();
                     throw new Error(`Error ${response.status}: ${errorText}`);
                 }
             } catch (error) {
-                console.error('Error al enviar a Aivo Studio:', error);
-                statusMessage.textContent = `Error al conectar con Aivo Studio: ${error.message}`;
+                console.error('Error al enviar:', error); // Mensaje de error más simple
+                statusMessage.textContent = `Error al enviar: ${error.message}`;
                 statusMessage.className = 'status-message error';
             } finally {
                 uploadButton.disabled = false; // Re-habilitar el botón
