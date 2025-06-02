@@ -172,24 +172,20 @@
     </div>
 
     <script>
-        // JavaScript para la lógica de la mini-web
-
-        // ¡IMPORTANTE! Reemplaza esto con la URL REAL de tu endpoint HTTP IN en Aivo Studio
-        // Ejemplo: https://tudominio.aivo.co/api/tu-ruta/uploadDocuments
+  
         const AIVO_STUDIO_ENDPOINT_URL = 'https://studio.aivo.co/api/consulting-macarena/recepcion'; 
         
-        // No se requiere AIVO_AUTH_TOKEN ni Authorization header según tu indicación.
 
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('fileInput');
         const fileListContainer = document.getElementById('fileList');
         const uploadButton = document.getElementById('uploadButton');
         const statusMessage = document.getElementById('statusMessage');
-        const closeWindowMessage = document.getElementById('closeWindowMessage'); // Nuevo elemento
+        const closeWindowMessage = document.getElementById('closeWindowMessage'); 
 
-        let selectedFiles = []; // Almacena los File objects seleccionados
+        let selectedFiles = [];
 
-        // -- Funciones de Drag and Drop --
+        
         dropArea.addEventListener('click', () => fileInput.click());
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
